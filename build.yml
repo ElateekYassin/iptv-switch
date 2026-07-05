@@ -1,0 +1,46 @@
+name: Build Switch IPTV (.nro)
+
+# Trigger manually from the Actions tab (works fine from the GitHub mobile
+# app / mobile browser), and also automatically on every push.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'source/**'
+      - 'Makefile'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Official devkitPro image - has devkitA64 + libnx preinstalled.
+    container:
+      image: devkitpro/devkita64:latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Install required portlibs
+        # DEVKITPRO is already set as an env var inside this image.
+        run: |
+          dkp-pacman -Sy --noconfirm
+          dkp-pacman -S --noconfirm switch-curl switch-mbedtls switch-json-c switch-zlib
+
+      - name: Build
+        run: |
+          make clean
+          make -j$(nproc)
+
+      - name: Verify output exists
+        run: |
+          ls -la switch-iptv.nro
+
+      - name: Upload .nro artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-iptv-nro
+          path: switch-iptv.nro
+          if-no-files-found: error

@@ -26,7 +26,6 @@ jobs:
       - name: Install required portlibs
         # DEVKITPRO is already set as an env var inside this image.
         run: |
-          dkp-pacman -Sy --noconfirm
           dkp-pacman -S --noconfirm switch-curl switch-mbedtls switch-zlib
 
       - name: Build
